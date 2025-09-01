@@ -53,6 +53,7 @@ class CoinSelectionReceive extends StatelessWidget {
                   ),
                 );
               } else {
+                swapPairDataController.fetchCoinsPairData();
                 swapController.updateReceiveCoin(index);
 
                 Get.offAll(() => Homepage());

@@ -1,3 +1,4 @@
+import 'package:Xswap/controllers/exchange_conversion_amount.dart';
 import 'package:Xswap/controllers/swap_market_controller.dart';
 import 'package:Xswap/controllers/swap_pair_data_controller.dart';
 import 'package:Xswap/mainstage/address_input_page.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
   Get.put(FieldController());
   Get.put(SwapMarketController());
   Get.put(SwapPairDataController());
+  Get.put(ExchangeConversionAmountController());
   runApp(Main());
 }
 

@@ -1,3 +1,4 @@
+import 'package:Xswap/controllers/exchange_conversion_amount.dart';
 import 'package:Xswap/controllers/swap_market_controller.dart';
 import 'package:Xswap/controllers/swap_pair_data_controller.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ import 'package:Xswap/mainstage/profile_page.dart';
 import 'package:Xswap/utilities/CustomTextField.dart';
 import 'package:Xswap/utilities/bottom_navigation_bar.dart';
 import 'package:Xswap/utilities/swap_text_field.dart';
-import 'package:auto_size_text/auto_size_text.dart';
+
 
 import '../controllers/coin_market_controller.dart';
 
@@ -33,6 +34,7 @@ class _SwapPageState extends State<SwapPage> {
       Get.find<CoinsMarketController>();
   SwapMarketController swapMarketController = Get.find<SwapMarketController>();
   SwapPairDataController swapPairDataController=Get.find<SwapPairDataController>();
+  ExchangeConversionAmountController exchangeConversionAmountController= Get.find<ExchangeConversionAmountController>();
   final sendController = TextEditingController();
   final receiveController = TextEditingController();
   final addressController = TextEditingController();
@@ -41,8 +43,16 @@ class _SwapPageState extends State<SwapPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
+
     super.initState();
+    sendController.addListener((){
+      final inputAmount=sendController.text;
+      if(inputAmount.isNotEmpty){
+        exchangeConversionAmountController.fetchConversionAmount(inputAmount,receiveController);
+      }else{
+        receiveController.text = '';
+      }
+    });
   }
 
   @override
@@ -85,7 +95,7 @@ class _SwapPageState extends State<SwapPage> {
                       ),
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        hintText: "Input amount to send",
+                        hintText: "Enter amount to send",
                         enabledBorder: OutlineInputBorder(
                           borderSide: const BorderSide(
                             style: BorderStyle.solid,
@@ -170,6 +180,7 @@ class _SwapPageState extends State<SwapPage> {
                               final hasData = coins.isNotEmpty && int.parse(swapController.sendCoin.value) < coins.length;
                               final ticker = hasData ? coins[int.parse(swapController.sendCoin.value)].ticker.toUpperCase() : "";
                               final minValue = swapPairDataController.min.toStringAsFixed(4);
+                              exchangeConversionAmountController.minValueAmount.value=minValue;
                               return Text(
                                 "Min: $minValue $ticker",
                                 style: TextStyle(color: Colors.red),
@@ -180,6 +191,7 @@ class _SwapPageState extends State<SwapPage> {
                               final hasData = coins.isNotEmpty && int.parse(swapController.sendCoin.value) < coins.length;
                               final ticker = hasData ? coins[int.parse(swapController.sendCoin.value)].ticker.toUpperCase() : "";
                               final maxValue = swapPairDataController.max.toStringAsFixed(4);
+                              exchangeConversionAmountController.maxValueAmount.value=maxValue;
                               return Text(
                                 "Max: $maxValue $ticker",
                                 style: TextStyle(color: Colors.red),
@@ -206,6 +218,7 @@ class _SwapPageState extends State<SwapPage> {
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     child: TextField(
                       controller: receiveController,
+                      readOnly: true,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
