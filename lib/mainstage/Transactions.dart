@@ -22,31 +22,34 @@ class _TransactionsState extends State<Transactions> {
       backgroundColor: Colors.grey,
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.history, size: 170, color: Colors.grey[800]),
-              Text(
-                "You have not made any transactions yet. Tap the button to make a swap.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24),
-              ),
-              SizedBox(height: 10,),
-              ElevatedButton(
-                onPressed: () {
-                  Get.off(() => Homepage());
-                  customNavigationController.changeIndex(0);
-                },
-
-                style: ElevatedButton.styleFrom(
-                  elevation: 13,
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(250, 50),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.history, size: 170, color: Colors.grey[800]),
+                Text(
+                  "You have not made any transactions yet. Tap the button to make a swap.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24),
                 ),
-                child: Text("Make A Swap"),
-              ),
-            ],
+                SizedBox(height: 10,),
+                ElevatedButton(
+                  onPressed: () {
+                    Get.off(() => Homepage());
+                    customNavigationController.changeIndex(0);
+                  },
+
+                  style: ElevatedButton.styleFrom(
+                    elevation: 13,
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    minimumSize: Size(250, 50),
+                  ),
+                  child: Text("Make A Swap"),
+                ),
+              ],
+            ),
           ),
         ),
       ),

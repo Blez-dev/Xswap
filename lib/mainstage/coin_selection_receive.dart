@@ -1,5 +1,6 @@
 import 'package:Xswap/controllers/swap_pair_data_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -32,7 +33,7 @@ class CoinSelectionReceive extends StatelessWidget {
         itemBuilder: (context, index) {
           final coin = swapMarketController.coinsAvailable[index];
           return ListTile(
-            leading: SvgPicture.network(coin.image,width: 40,height: 40,placeholderBuilder: (context)=> CircularProgressIndicator(color: Colors.black,),),
+            leading: SvgPicture.network(coin.image,width: 40,height: 40, placeholderBuilder: (context) => SizedBox(width: 30,height: 30,child: Center(child: SpinKitFadingCircle(color: Colors.black,size: 25,),),)),
 
             title: Text(coin.ticker.toUpperCase()),
             subtitle: Text(coin.name),

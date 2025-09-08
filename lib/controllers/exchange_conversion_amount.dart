@@ -13,6 +13,7 @@ class ExchangeConversionAmountController extends GetxController{
   var validUntil = DateTime.now().obs;
   var minValueAmount="".obs;
   var maxValueAmount="".obs;
+  var hasError= false.obs;
 
 
 
@@ -55,7 +56,7 @@ class ExchangeConversionAmountController extends GetxController{
           print(receiveController.text);
         } else {
           print('Error: ${response.statusCode} - ${response.reasonPhrase}');
-          receiveController.text = '12';
+          receiveController.text = '';
         }
 
 

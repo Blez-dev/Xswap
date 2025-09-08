@@ -111,8 +111,8 @@ class Login extends StatelessWidget {
                           },
                           icon: Icon(
                             fieldController.obscureText.value
-                                ? Icons.visibility
-                                : Icons.visibility_off,
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                         ),
                         hintText: "Password",

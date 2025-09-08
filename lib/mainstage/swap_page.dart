@@ -2,6 +2,7 @@ import 'package:Xswap/controllers/exchange_conversion_amount.dart';
 import 'package:Xswap/controllers/swap_market_controller.dart';
 import 'package:Xswap/controllers/swap_pair_data_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -15,7 +16,6 @@ import 'package:Xswap/mainstage/profile_page.dart';
 import 'package:Xswap/utilities/CustomTextField.dart';
 import 'package:Xswap/utilities/bottom_navigation_bar.dart';
 import 'package:Xswap/utilities/swap_text_field.dart';
-
 
 import '../controllers/coin_market_controller.dart';
 
@@ -33,8 +33,10 @@ class _SwapPageState extends State<SwapPage> {
   CoinsMarketController coinsMarketController =
       Get.find<CoinsMarketController>();
   SwapMarketController swapMarketController = Get.find<SwapMarketController>();
-  SwapPairDataController swapPairDataController=Get.find<SwapPairDataController>();
-  ExchangeConversionAmountController exchangeConversionAmountController= Get.find<ExchangeConversionAmountController>();
+  SwapPairDataController swapPairDataController =
+      Get.find<SwapPairDataController>();
+  ExchangeConversionAmountController exchangeConversionAmountController =
+      Get.find<ExchangeConversionAmountController>();
   final sendController = TextEditingController();
   final receiveController = TextEditingController();
   final addressController = TextEditingController();
@@ -43,13 +45,17 @@ class _SwapPageState extends State<SwapPage> {
 
   @override
   void initState() {
-
     super.initState();
-    sendController.addListener((){
-      final inputAmount=sendController.text;
-      if(inputAmount.isNotEmpty){
-        exchangeConversionAmountController.fetchConversionAmount(inputAmount,receiveController);
+    sendController.addListener(() {
+      final inputAmount = sendController.text;
+      if (inputAmount.isNotEmpty&&double.parse(inputAmount)<=double.parse(exchangeConversionAmountController.maxValueAmount.value)&&double.parse(inputAmount)>=double.parse(exchangeConversionAmountController.minValueAmount.value)) {
+        exchangeConversionAmountController.hasError.value=false;
+        exchangeConversionAmountController.fetchConversionAmount(inputAmount, receiveController,
+        );
+      } else if(inputAmount.isEmpty) {
+        receiveController.text = '';
       }else{
+        exchangeConversionAmountController.hasError.value=true;
         receiveController.text = '';
       }
     });
@@ -85,82 +91,95 @@ class _SwapPageState extends State<SwapPage> {
                   SizedBox(height: 15),
 
                   Padding(
+
                     padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: TextField(
-                      controller: sendController,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 18,
-                      ),
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        hintText: "Enter amount to send",
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            style: BorderStyle.solid,
-                            color: Colors.black,
-                            width: 1,
-                          ),
+                    child: Obx(() {
+                     return TextField(
+
+                        controller: sendController,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: 18,
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(
-                            style: BorderStyle.solid,
-                            color: Colors.black,
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        fillColor: Colors.grey[100],
-                        filled: true,
-                        suffixIcon: Obx(() {
-                          if (coinsMarketController.coins.isEmpty) {
-                            return SizedBox();
-                          }
-                          return GestureDetector(
-                            onTap: () {
-                              Get.to(() => CoinSelectionPageSend());
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                swapMarketController.coinsAvailable.isNotEmpty
-                                    ? SvgPicture.network(
-                                  swapMarketController.coinsAvailable[int.parse(
-                                    swapController.sendCoin.toString(),
-                                  )].image,
-                                  width: 25,
-                                )
-                                    : SizedBox.shrink(),
-
-                                SizedBox(width: 7),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-
-                                    Text(
-
-                                      swapMarketController.coinsAvailable.isNotEmpty?
-                                      swapMarketController
-                                          .coinsAvailable[int.parse(
-                                        swapController.sendCoin.toString(),
-                                      )]
-                                          .ticker
-                                          .toUpperCase(): ""
-                                    ),
-
-
-                                  ],
-                                ),
-                                Icon(Icons.arrow_drop_down, size: 25),
-                                SizedBox(width: 10),
-                              ],
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,4}')),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: "Enter amount to send",
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                              style: BorderStyle.solid,
+                              color: Colors.black,
+                              width: 1,
                             ),
-                          );
-                        }),
-                      ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              style: BorderStyle.solid,
+                              color: exchangeConversionAmountController.hasError.value? Colors.red :  Colors.black,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          fillColor: Colors.grey[100],
+                          filled: true,
+                          suffixIcon: Obx(() {
+                            if (coinsMarketController.coins.isEmpty) {
+                              return SizedBox();
+                            }
+                            return GestureDetector(
+                              onTap: () {
+                                Get.to(() => CoinSelectionPageSend());
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  swapMarketController.coinsAvailable.isNotEmpty
+                                      ? SvgPicture.network(
+                                    swapMarketController
+                                        .coinsAvailable[int.parse(
+                                      swapController.sendCoin
+                                          .toString(),
+                                    )]
+                                        .image,
+                                    width: 25,
+                                  )
+                                      : SizedBox.shrink(),
+
+                                  SizedBox(width: 7),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        swapMarketController
+                                            .coinsAvailable
+                                            .isNotEmpty
+                                            ? swapMarketController
+                                            .coinsAvailable[int.parse(
+                                          swapController.sendCoin
+                                              .toString(),
+                                        )]
+                                            .ticker
+                                            .toUpperCase()
+                                            : "",
+                                      ),
+                                    ],
+                                  ),
+                                  Icon(Icons.arrow_drop_down, size: 25),
+                                  SizedBox(width: 10),
+                                ],
+                              ),
+                            );
+                          }),
+                        ),
+                      )
+                      ;
+                    }
                     ),
                   ),
 
@@ -173,14 +192,25 @@ class _SwapPageState extends State<SwapPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-
-
                             Obx(() {
                               final coins = swapMarketController.coinsAvailable;
-                              final hasData = coins.isNotEmpty && int.parse(swapController.sendCoin.value) < coins.length;
-                              final ticker = hasData ? coins[int.parse(swapController.sendCoin.value)].ticker.toUpperCase() : "";
-                              final minValue = swapPairDataController.min.toStringAsFixed(4);
-                              exchangeConversionAmountController.minValueAmount.value=minValue;
+                              final hasData =
+                                  coins.isNotEmpty &&
+                                  int.parse(swapController.sendCoin.value) <
+                                      coins.length;
+                              final ticker = hasData
+                                  ? coins[int.parse(
+                                          swapController.sendCoin.value,
+                                        )]
+                                        .ticker
+                                        .toUpperCase()
+                                  : "";
+                              final minValue = swapPairDataController.min
+                                  .toStringAsFixed(4);
+                              exchangeConversionAmountController
+                                      .minValueAmount
+                                      .value =
+                                  minValue;
                               return Text(
                                 "Min: $minValue $ticker",
                                 style: TextStyle(color: Colors.red),
@@ -188,25 +218,36 @@ class _SwapPageState extends State<SwapPage> {
                             }),
                             Obx(() {
                               final coins = swapMarketController.coinsAvailable;
-                              final hasData = coins.isNotEmpty && int.parse(swapController.sendCoin.value) < coins.length;
-                              final ticker = hasData ? coins[int.parse(swapController.sendCoin.value)].ticker.toUpperCase() : "";
-                              final maxValue = swapPairDataController.max.toStringAsFixed(4);
-                              exchangeConversionAmountController.maxValueAmount.value=maxValue;
+                              final hasData =
+                                  coins.isNotEmpty &&
+                                  int.parse(swapController.sendCoin.value) <
+                                      coins.length;
+                              final ticker = hasData
+                                  ? coins[int.parse(
+                                          swapController.sendCoin.value,
+                                        )]
+                                        .ticker
+                                        .toUpperCase()
+                                  : "";
+                              final maxValue = swapPairDataController.max
+                                  .toStringAsFixed(4);
+                              exchangeConversionAmountController
+                                      .maxValueAmount
+                                      .value =
+                                  maxValue;
                               return Text(
                                 "Max: $maxValue $ticker",
                                 style: TextStyle(color: Colors.red),
                               );
                             }),
-
-
-
-
                           ],
                         ),
                         IconButton(
                           onPressed: () {
                             swapController.swapCoinText();
                             swapPairDataController.getTickerData();
+                            sendController.text = "";
+                            receiveController.text = '';
                           },
                           icon: Icon(Icons.swap_vert_outlined, size: 45),
                         ),
@@ -226,11 +267,12 @@ class _SwapPageState extends State<SwapPage> {
                       ),
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        hintText: "Input amount to receive",
+                        hintText: " Amount to receive",
                         enabledBorder: OutlineInputBorder(
                           borderSide: const BorderSide(
                             style: BorderStyle.solid,
                             color: Colors.black,
+
                             width: 1,
                           ),
                         ),
@@ -256,24 +298,34 @@ class _SwapPageState extends State<SwapPage> {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                swapMarketController.coinsAvailable.isNotEmpty?
-                                SvgPicture.network(
-                                  swapMarketController
-                                      .coinsAvailable[int.parse(
-                                    swapController.receiveCoin.toString(),
-                                  )]
-                                      .image,
-                                  width: 25,
-                                  height: 25,
-
-                                ): SizedBox.shrink(),
+                                swapMarketController.coinsAvailable.isNotEmpty
+                                    ? SvgPicture.network(
+                                        swapMarketController
+                                            .coinsAvailable[int.parse(
+                                              swapController.receiveCoin
+                                                  .toString(),
+                                            )]
+                                            .image,
+                                        width: 25,
+                                        height: 25,
+                                      )
+                                    : SizedBox.shrink(),
                                 SizedBox(width: 7),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      swapMarketController.coinsAvailable.isNotEmpty ? swapMarketController.coinsAvailable[int.parse(swapController.receiveCoin.toString(),)].ticker.toUpperCase()
+                                      swapMarketController
+                                              .coinsAvailable
+                                              .isNotEmpty
+                                          ? swapMarketController
+                                                .coinsAvailable[int.parse(
+                                                  swapController.receiveCoin
+                                                      .toString(),
+                                                )]
+                                                .ticker
+                                                .toUpperCase()
                                           : "",
                                     ),
                                   ],
@@ -292,17 +344,29 @@ class _SwapPageState extends State<SwapPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Obx((){
+                        Obx(() {
                           final coins = swapMarketController.coinsAvailable;
-                          final hasData = coins.isNotEmpty && int.parse(swapController.sendCoin.value) < coins.length;
-                          final ticker = hasData ? coins[int.parse(swapController.sendCoin.value)].ticker.toUpperCase() : "";
-                          final receiveTicker = hasData ? coins[int.parse(swapController.receiveCoin.value)].ticker.toUpperCase() : "";
-                          final rate= swapPairDataController.rate.value.toStringAsFixed(4);
+                          final hasData =
+                              coins.isNotEmpty &&
+                              int.parse(swapController.sendCoin.value) <
+                                  coins.length;
+                          final ticker = hasData
+                              ? coins[int.parse(swapController.sendCoin.value)]
+                                    .ticker
+                                    .toUpperCase()
+                              : "";
+                          final receiveTicker = hasData
+                              ? coins[int.parse(
+                                      swapController.receiveCoin.value,
+                                    )]
+                                    .ticker
+                                    .toUpperCase()
+                              : "";
+                          final rate = swapPairDataController.rate.value
+                              .toStringAsFixed(4);
 
-                          return Text("1 $ticker ~ $rate $receiveTicker" );
-
-                        })
-
+                          return Text("1 $ticker ~ $rate $receiveTicker");
+                        }),
                       ],
                     ),
                   ),
@@ -356,7 +420,10 @@ class _SwapPageState extends State<SwapPage> {
                   ElevatedButton(
                     onPressed: () {
                       //Get.to(() => AddressInputPage());
-                      Get.snackbar("Feature not implemented yet!", "Coming in next release");
+                      Get.snackbar(
+                        "Feature not implemented yet!",
+                        "Coming in next release",
+                      );
                     },
 
                     style: ElevatedButton.styleFrom(

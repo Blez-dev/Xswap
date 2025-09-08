@@ -6,8 +6,10 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:Xswap/controllers/swap_controller.dart';
 import 'package:Xswap/mainstage/homepage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-import 'package:Xswap/mainstage/swap_page.dart';
+
+
 
 import '../controllers/swap_market_controller.dart';
 import '../controllers/swap_pair_data_controller.dart';
@@ -35,7 +37,7 @@ class CoinSelectionPageSend extends StatelessWidget {
           final coin = swapMarketController.coinsAvailable[index];
           return ListTile(
 
-            leading: SvgPicture.network(coin.image,width: 40,height: 40, placeholderBuilder: (context) => CircularProgressIndicator(color: Colors.black,),),
+            leading: SvgPicture.network(coin.image,width: 40,height: 40, placeholderBuilder: (context) => SizedBox(width: 30,height: 30,child: Center(child: SpinKitFadingCircle(color: Colors.black,size: 25,),),)),
             title: Text(coin.ticker.toUpperCase()),
             subtitle: Text(coin.name),
             onTap: () {
